@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataViz - Interactive Analytics Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        .dashboard-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.1), 0 8px 10px -6px rgba(59, 130, 246, 0.1);
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: .5;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navbar -->
+    <nav class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center">
+                    <i class="fas fa-chart-line text-2xl mr-2"></i>
+                    <h1 class="text-xl font-bold">DataViz Dashboard</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button id="export-btn" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-1 rounded text-sm flex items-center">
+                        <i class="fas fa-download mr-1"></i> Export
+                    </button>
+                    <button id="share-btn" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-1 rounded text-sm flex items-center">
+                        <i class="fas fa-share-alt mr-1"></i> Share
+                    </button>
+                    <div class="relative">
+                        <img src="https://randomuser.me/api/portraits/men/1.jpg" alt="User Avatar" class="h-8 w-8 rounded-full border-2 border-white cursor-pointer" id="user-menu-button">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header section -->
+        <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-8">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-800">Analytics Overview</h2>
+                <p class="text-gray-600">Track your key performance metrics</p>
+            </div>
+            <div class="mt-4 md:mt-0 flex space-x-3">
+                <div class="relative">
+                    <select id="date-range" class="appearance-none bg-white border border-gray-300 text-gray-700 py-2 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="7d">Last 7 days</option>
+                        <option value="30d" selected>Last 30 days</option>
+                        <option value="90d">Last 90 days</option>
+                        <option value="1y">Last year</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                        <i class="fas fa-chevron-down text-xs"></i>
+                    </div>
+                </div>
+                <button id="refresh-btn" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg flex items-center">
+                    <i class="fas fa-sync-alt mr-1"></i> Refresh
+                </button>
+            </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Users KPI -->
+            <div class="dashboard-card bg-white rounded-xl shadow-md p-6">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Total Users</p>
+                        <h3 class="text-2xl font-bold text-gray-800 mt-1">32,847</h3>
+                        <div class="flex items-center mt-2">
+                            <span class="text-green-600 flex items-center text-sm font-medium">
+                                <i class="fas fa-arrow-up mr-1"></i> 14.8%
+                            </span>
+                            <span class="text-gray-500 text-sm ml-2">vs last period</span>
+                        </div>
+                    </div>
+                    <div class="bg-blue-100 rounded-lg p-3">
+                        <i class="fas fa-users text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Revenue KPI -->
+            <div class="dashboard-card bg-white rounded-xl shadow-md p-6">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Revenue</p>
+                        <h3 class="text-2xl font-bold text-gray-800 mt-1">$78,631</h3>
+                        <div class="flex items-center mt-2">
+                            <span class="text-green-600 flex items-center text-sm font-medium">
+                                <i class="fas fa-arrow-up mr-1"></i> 10.4%
+                            </span>
+                            <span class="text-gray-500 text-sm ml-2">vs last period</span>
+                        </div>
+                    </div>
+                    <div class="bg-green-100 rounded-lg p-3">
+                        <i class="fas fa-dollar-sign text-green-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conversion KPI -->
+            <div class="dashboard-card bg-white rounded-xl shadow-md p-6">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Conversion Rate</p>
+                        <h3 class="text-2xl font-bold text-gray-800 mt-1">5.2%</h3>
+                        <div class="flex items-center mt-2">
+                            <span class="text-green-600 flex items-center text-sm font-medium">
+                                <i class="fas fa-arrow-up mr-1"></i> 0.8%
+                            </span>
+                            <span class="text-gray-500 text-sm ml-2">vs last period</span>
+                        </div>
+                    </div>
+                    <div class="bg-purple-100 rounded-lg p-3">
+                        <i class="fas fa-exchange-alt text-purple-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Engagement KPI -->
+            <div class="dashboard-card bg-white rounded-xl shadow-md p-6">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Avg. Session</p>
+                        <h3 class="text-2xl font-bold text-gray-800 mt-1">5m 43s</h3>
+                        <div class="flex items-center mt-2">
+                            <span class="text-green-600 flex items-center text-sm font-medium">
+                                <i class="fas fa-arrow-up mr-1"></i> 9.2%
+                            </span>
+                            <span class="text-gray-500 text-sm ml-2">vs last period</span>
+                        </div>
+                    </div>
+                    <div class="bg-yellow-100 rounded-lg p-3">
+                        <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- First Row of Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <!-- Users by Time Chart -->
+            <div class="dashboard-card bg-white rounded-xl shadow-md p-6 col-span-2">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 class="font-semibold text-gray-800">User Activity</h3>
+                        <p class="text-sm text-gray-500">Daily active users over time</p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button class="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 py-1 px-3 rounded-full transition" data-chart="users" data-period="day">Day</button>
+                        <button class="text-sm bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded-full transition" data-chart="users" data-period="week">Week</button>
+                        <button class="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 py-1 px-3 rounded-full transition" data-chart="users" data-period="month">Month</button>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="users-chart"></canvas>
+                </div>
+            </div>
+
+            <!-- Traffic Sources -->
+            <div class="dashboard-card bg-white rounded-xl shadow-md p-6">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 class="font-semibold text-gray-800">Traffic Sources</h3>
+                        <p class="text-sm text-gray-500">Top referral channels</p>
+                    </div>
+                    <button class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-ellipsis-h"></i>
+                    </button>
+                </div>
+                <div class="chart-container">
+                    <canvas id="traffic-chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Second Row of Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Geographical Distribution -->
+            <div class="dashboard-card bg-white rounded-xl shadow-md p-6">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 class="font-semibold text-gray-800">Geographical Distribution</h3>
+                        <p class="text-sm text-gray-500">Users by country</p>
+                    </div>
+                    <button class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-ellipsis-h"></i>
+                    </button>
+                </div>
+                <!-- Country data -->
+                <div class="mt-4 space-y-4">
+                    <!-- USA -->
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <span class="text-sm text-gray-700 font-medium">United States</span>
+                            <span class="text-sm text-gray-700 font-medium">38%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-blue-600 h-2 rounded-full" style="width: 38%"></div>
+                        </div>
+                    </div>
+                    <!-- India -->
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <span class="text-sm text-gray-700 font-medium">India</span>
+                            <span class="text-sm text-gray-700 font-medium">22%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-blue-600 h-2 rounded-full" style="width: 22%"></div>
+                        </div>
+                    </div>
+                    <!-- UK -->
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <span class="text-sm text-gray-700 font-medium">United Kingdom</span>
+                            <span class="text-sm text-gray-700 font-medium">16%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-blue-600 h-2 rounded-full" style="width: 16%"></div>
+                        </div>
+                    </div>
+                    <!-- Indonesia -->
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <span class="text-sm text-gray-700 font-medium">Indonesia</span>
+                            <span class="text-sm text-gray-700 font-medium">12%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-blue-600 h-2 rounded-full" style="width: 12%"></div>
+                        </div>
+                    </div>
+                    <!-- Others -->
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <span class="text-sm text-gray-700 font-medium">Others</span>
+                            <span class="text-sm text-gray-700 font-medium">12%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-blue-600 h-2 rounded-full" style="width: 12%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Device Usage -->
+            <div class="dashboard-card bg-white rounded-xl shadow-md p-6">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 class="font-semibold text-gray-800">Device Usage</h3>
+                        <p class="text-sm text-gray-500">Sessions by device type</p>
+                    </div>
+                    <button class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-ellipsis-h"></i>
+                    </button>
+                </div>
+                <div class="chart-container">
+                    <canvas id="devices-chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity Table -->
+        <div class="dashboard-card bg-white rounded-xl shadow-md p-6">
+            <div class="flex justify-between items-start mb-6">
+                <div>
+                    <h3 class="font-semibold text-gray-800">Recent Activity</h3>
+                    <p class="text-sm text-gray-500">Latest user interactions</p>
+                </div>
+                <button class="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 py-1 px-3 rounded-full transition">
+                    View All
+                </button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead>
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Page</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Device</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-700">SP</div>
+                                    <div class="ml-3">
+                                        <div class="text-sm font-medium text-gray-900">Sarah Patel</div>
+                                        <div class="text-sm text-gray-500">sarah.p@example.com</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                    Purchase
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                Premium Plan
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <i class="fas fa-mobile-alt mr-1"></i> Mobile
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                3 min ago
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-700">MN</div>
+                                    <div class="ml-3">
+                                        <div class="text-sm font-medium text-gray-900">Michael Nguyen</div>
+                                        <div class="text-sm text-gray-500">michael.n@example.com</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                    Sign Up
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                Registration
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <i class="fas fa-desktop mr-1"></i> Desktop
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                8 min ago
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-700">KJ</div>
+                                    <div class="ml-3">
+                                        <div class="text-sm font-medium text-gray-900">Keisha Jones</div>
+                                        <div class="text-sm text-gray-500">keisha.j@example.com</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                    Page View
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                Feature Comparison
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <i class="fas fa-tablet-alt mr-1"></i> Tablet
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                12 min ago
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-700">AL</div>
+                                    <div class="ml-3">
+                                        <div class="text-sm font-medium text-gray-900">Alex Li</div>
+                                        <div class="text-sm text-gray-500">alex.li@example.com</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                    Abandoned Cart
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                Enterprise Plan
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <i class="fas fa-mobile-alt mr-1"></i> Mobile
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                22 min ago
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-700">RC</div>
+                                    <div class="ml-3">
+                                        <div class="text-sm font-medium text-gray-900">Ryan Chen</div>
+                                        <div class="text-sm text-gray-500">ryan.c@example.com</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
+                                    API Request
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                Developer Portal
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <i class="fas fa-laptop mr-1"></i> Desktop
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                30 min ago
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-8">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <p class="text-gray-600 text-sm">© 2025 DataViz Dashboard | Created by Pasca Ragophala</p>
+                </div>
+                <div class="flex space-x-4">
+                    <a href="https://github.com/pascaragophala" target="_blank" class="text-gray-500 hover:text-blue-600 transition">
+                        <i class="fab fa-github"></i>
+                    </a>
+                    <a href="https://www.linkedin.com/in/pasca-ragophala-a9442b233/" target="_blank" class="text-gray-500 hover:text-blue-600 transition">
+                        <i class="fab fa-linkedin"></i>
+                    </a>
+                    <a href="#" class="text-gray-500 hover:text-blue-600 transition">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-white rounded-lg shadow-lg p-4 hidden transform transition-transform duration-300 translate-y-10 opacity-0">
+        <div class="flex items-center">
+            <div class="bg-green-100 rounded-full p-2 mr-3">
+                <i class="fas fa-check text-green-500"></i>
+            </div>
+            <div>
+                <h4 class="font-medium text-gray-800" id="toast-title">Success!</h4>
+                <p class="text-sm text-gray-600" id="toast-message">Data refreshed successfully.</p>
+            </div>
+            <button class="ml-6 text-gray-400 hover:text-gray-600" onclick="hideToast()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            initCharts();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // Refresh button
+            document.getElementById('refresh-btn').addEventListener('click', function() {
+                showToast('Success', 'Data refreshed successfully!');
+                refreshCharts();
+            });
+
+            // Export button
+            document.getElementById('export-btn').addEventListener('click', function() {
+                showToast('Export Started', 'Your data is being exported...');
+            });
+
+            // Share button
+            document.getElementById('share-btn').addEventListener('click', function() {
+                showToast('Link Copied', 'Dashboard link copied to clipboard!');
+            });
+
+            // Date range selector
+            document.getElementById('date-range').addEventListener('change', function() {
+                refreshCharts();
+            });
+        }
+
+        function initCharts() {
+            initUsersChart();
+            initTrafficChart();
+            initDevicesChart();
+        }
+
+        function initUsersChart() {
+            const ctx = document.getElementById('users-chart').getContext('2d');
+            
+            // More realistic user activity data with a growth trend
+            const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            const data = {
+                labels: labels,
+                datasets: [{
+                    label: 'Active Users',
+                    data: [3245, 3578, 3912, 3768, 4125, 4876, 5230],
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true
+                }]
+            };
+
+            window.usersChart = new Chart(ctx, {
+                type: 'line',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                            titleColor: '#1F2937',
+                            bodyColor: '#6B7280',
+                            borderColor: '#E5E7EB',
+                            borderWidth: 1,
+                            padding: 10,
+                            boxPadding: 5,
+                            usePointStyle: true
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                borderDash: [2, 4],
+                                color: '#E5E7EB'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    if (value >= 1000) {
+                                        return (value / 1000).toFixed(1) + 'k';
+                                    }
+                                    return value;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Event listeners for changing time period
+            document.querySelectorAll('[data-chart="users"]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const period = this.getAttribute('data-period');
+                    updateUsersChart(period);
+                    
+                   // Update active button
+                    document.querySelectorAll('[data-chart="users"]').forEach(btn => {
+                        btn.classList.remove('bg-blue-500', 'text-white');
+                        btn.classList.add('bg-gray-100', 'text-gray-700');
+                    });
+                    
+                    // Set active button
+                    this.classList.remove('bg-gray-100', 'text-gray-700');
+                    this.classList.add('bg-blue-500', 'text-white');
+                });
+            });
+        }
+
+        function updateUsersChart(period) {
+            let labels, data;
+            
+            switch(period) {
+                case 'day':
+                    labels = ['12am', '4am', '8am', '12pm', '4pm', '8pm', '11pm'];
+                    data = [1245, 2458, 4512, 3952, 4215, 5125, 3845];
+                    break;
+                case 'week':
+                    labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                    data = [3245, 3578, 3912, 3768, 4125, 4876, 5230];
+                    break;
+                case 'month':
+                    labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+                    data = [22540, 25780, 28950, 32150];
+                    break;
+            }
+            
+            window.usersChart.data.labels = labels;
+            window.usersChart.data.datasets[0].data = data;
+            window.usersChart.update();
+        }
+
+        function initTrafficChart() {
+            const ctx = document.getElementById('traffic-chart').getContext('2d');
+            
+            const data = {
+                labels: ['Search', 'Direct', 'Social', 'Email', 'Referral'],
+                datasets: [{
+                    data: [38, 24, 18, 12, 8],
+                    backgroundColor: [
+                        'rgba(59, 130, 246, 0.8)',
+                        'rgba(16, 185, 129, 0.8)',
+                        'rgba(245, 158, 11, 0.8)',
+                        'rgba(139, 92, 246, 0.8)',
+                        'rgba(239, 68, 68, 0.8)'
+                    ],
+                    borderWidth: 0
+                }]
+            };
+
+            window.trafficChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '65%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                padding: 15,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                            titleColor: '#1F2937',
+                            bodyColor: '#6B7280',
+                            borderColor: '#E5E7EB',
+                            borderWidth: 1,
+                            padding: 10,
+                            boxPadding: 5,
+                            usePointStyle: true,
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + context.raw + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function initDevicesChart() {
+            const ctx = document.getElementById('devices-chart').getContext('2d');
+            
+            const data = {
+                labels: ['Mobile', 'Desktop', 'Tablet'],
+                datasets: [{
+                    data: [58, 32, 10],
+                    backgroundColor: [
+                        'rgba(59, 130, 246, 0.8)',
+                        'rgba(16, 185, 129, 0.8)',
+                        'rgba(245, 158, 11, 0.8)'
+                    ],
+                    borderWidth: 0
+                }]
+            };
+
+            window.devicesChart = new Chart(ctx, {
+                type: 'pie',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                padding: 15,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                            titleColor: '#1F2937',
+                            bodyColor: '#6B7280',
+                            borderColor: '#E5E7EB',
+                            borderWidth: 1,
+                            padding: 10,
+                            boxPadding: 5,
+                            usePointStyle: true,
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + context.raw + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function refreshCharts() {
+            // Add slight animation for refreshing
+            document.querySelectorAll('.chart-container').forEach(container => {
+                container.classList.add('animate-pulse');
+                setTimeout(() => {
+                    container.classList.remove('animate-pulse');
+                }, 1000);
+            });
+            
+            // Update charts with new random data
+            setTimeout(() => {
+                updateRandomChartData(window.usersChart);
+                updateRandomChartData(window.trafficChart);
+                updateRandomChartData(window.devicesChart);
+            }, 500);
+        }
+
+        function updateRandomChartData(chart) {
+            if (!chart) return;
+            
+            // Generate new random data that's close to the original values
+            const originalData = [...chart.data.datasets[0].data];
+            const newData = originalData.map(value => {
+                // Add or subtract up to 15% randomly
+                const changePercent = (Math.random() * 30 - 15) / 100;
+                return Math.max(value * (1 + changePercent), 0);
+            });
+            
+            chart.data.datasets[0].data = newData;
+            chart.update();
+        }
+
+        function showToast(title, message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-title').innerText = title;
+            document.getElementById('toast-message').innerText = message;
+            
+            toast.classList.remove('hidden', 'translate-y-10', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            
+            setTimeout(hideToast, 3000);
+        }
+
+        function hideToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.remove('translate-y-0', 'opacity-100');
+            toast.classList.add('translate-y-10', 'opacity-0');
+            
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 300);
+        }
+    </script>
+</body>
+</html>
